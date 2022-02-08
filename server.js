@@ -45,7 +45,7 @@ const books = [
 const AuthorType = new GraphQLObjectType({
     name: "Author",
     description: "This represents an author of a book",
-    fields: () => ({
+    fields: () => ({ // reason for returning function in field is to have AuthorType and BookType defined before call
         id: { type: GraphQLNonNull(GraphQLInt) }, // Id is an integer that cannot be null
         name: { type: GraphQLNonNull(GraphQLString) },
         books: {
@@ -60,7 +60,7 @@ const AuthorType = new GraphQLObjectType({
 const BookType = new GraphQLObjectType({
     name: "Book",
     description: "This represents a book written by an author",
-    fields: () => ({
+    fields: () => ({ // reason for returning function in field is to have AuthorType and BookType defined before call
         id: { type: GraphQLNonNull(GraphQLInt) }, // Id is an integer that cannot be null
         name: { type: GraphQLNonNull(GraphQLString) },
         authorId: { type: GraphQLNonNull(GraphQLInt) },
@@ -106,8 +106,93 @@ const RootQueryType = new GraphQLObjectType({
     })
 })
 
+// POST, PUT, DELETE in REST API
+const RootMutationType = new GraphQLObjectType({
+    name: "Mutation",
+    description: "Root Mutation",
+    fields: () => ({
+        addBook: { // Add Book Function (POST)
+            type: BookType,
+            description: "Add a Book",
+            args: {
+                name: { type: GraphQLNonNull(GraphQLString) },
+                authorId: { type: GraphQLNonNull(GraphQLInt) }
+            },
+            resolve: (parent, args) => {
+                const book = {id: books.length+1, name: args.name, authorId: args.authorId}
+                books.push(book)
+                return book
+            }
+        },
+        updateBook: { // Update a books name and author (PUT)
+            type: BookType,
+            description: "Update a book",
+            args: {
+                id: { type: GraphQLNonNull(GraphQLInt) },
+                name: { type: GraphQLNonNull(GraphQLString) },
+                authorId: {type: GraphQLNonNull(GraphQLInt)}
+            },
+            resolve: (parent, args) => {
+                const updatedBook = {id: args.id, name: args.name, authorId: args.authorId}
+                books.splice(args.id-1, 1, updatedBook)
+                return updatedBook
+            }
+        },
+        deleteBook: { // Deletes a book (DELETE)
+            type: BookType,
+            description: "Delete a book",
+            args:{
+                id: { type: GraphQLNonNull(GraphQLInt)}
+            },
+            resolve: (parent, args) => {
+                const deletedBook = {id: books[args.id-1].id, name: books[args.id-1].name, authorId: books[args.id-1].authorId}
+                books.splice(args.id-1, 1)
+                return deletedBook
+            }
+        },
+        addAuthor: { // Add Author Function (POST)
+            type: AuthorType,
+            description: "Add a Author",
+            args: {
+                name: { type: GraphQLNonNull(GraphQLString) }
+            },
+            resolve: (parent, args) => {
+                const author = {id: authors.length+1, name: args.name}
+                authors.push(author)
+                return author
+            }
+        },
+        updateAuthor: { // Update a author name (PUT)
+            type: AuthorType,
+            description: "Update an author",
+            args: {
+                id: { type: GraphQLNonNull(GraphQLInt) },
+                name: { type: GraphQLNonNull(GraphQLString) }
+            },
+            resolve: (parent, args) => {
+                const updatedAuthor = {id: args.id, name: args.name}
+                authors.splice(args.id-1, 1, updatedAuthor)
+                return updatedAuthor
+            }
+        },
+        deleteAuthor: { // Deletes an author (DELETE)
+            type: AuthorType,
+            description: "Delete an author",
+            args:{
+                id: { type: GraphQLNonNull(GraphQLInt)}
+            },
+            resolve: (parent, args) => {
+                const deletedAuthor = {id: authors[args.id-1].id, name: authors[args.id-1].name}
+                authors.splice(args.id-1, 1)
+                return deletedAuthor
+            }
+        },
+    })
+})
+
 const schema = new GraphQLSchema({
-    query: RootQueryType
+    query: RootQueryType,
+    mutation: RootMutationType
 })
 
 
